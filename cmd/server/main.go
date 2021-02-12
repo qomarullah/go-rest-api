@@ -26,7 +26,6 @@ import (
 
 // Version indicates the current version of the application.
 var Version = "1.0.0"
-
 var flagConfig = flag.String("config", "./config/local.yml", "path to the config file")
 
 func main() {
