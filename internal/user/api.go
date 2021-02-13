@@ -1,4 +1,4 @@
-package album
+package user
 
 import (
 	"net/http"
@@ -13,14 +13,14 @@ import (
 func RegisterHandlers(r *routing.RouteGroup, service Service, authHandler routing.Handler, logger log.Logger) {
 	res := resource{service, logger}
 
-	r.Get("/albums/<id>", res.get)
-	r.Get("/albums", res.query)
+	r.Get("/users/<id>", res.get)
+	r.Get("/users", res.query)
 
 	r.Use(authHandler)
 	// the following endpoints require a valid JWT
-	r.Post("/albums", res.create)
-	r.Put("/albums/<id>", res.update)
-	r.Delete("/albums/<id>", res.delete)
+	r.Post("/users", res.create)
+	r.Put("/users/<id>", res.update)
+	r.Delete("/users/<id>", res.delete)
 }
 
 type resource struct {
@@ -29,12 +29,13 @@ type resource struct {
 }
 
 func (r resource) get(c *routing.Context) error {
-	album, err := r.service.Get(c.Request.Context(), c.Param("id"))
+	user, err := r.service.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	return c.Write(album)
+	//return c.Write(user)
+	return errors.Success(user)
 }
 
 func (r resource) query(c *routing.Context) error {
@@ -44,48 +45,53 @@ func (r resource) query(c *routing.Context) error {
 		return err
 	}
 	pages := pagination.NewFromRequest(c.Request, count)
-	albums, err := r.service.Query(ctx, pages.Offset(), pages.Limit())
+	users, err := r.service.Query(ctx, pages.Offset(), pages.Limit())
 	if err != nil {
 		return err
 	}
-	pages.Items = albums
-	return c.Write(pages)
+	pages.Items = users
+	//return c.Write(pages)
+	return errors.Success(pages)
 }
 
 func (r resource) create(c *routing.Context) error {
-	var input CreateAlbumRequest
+	var input CreateUserRequest
 	if err := c.Read(&input); err != nil {
 		r.logger.With(c.Request.Context()).Info(err)
 		return errors.BadRequest("")
 	}
-	album, err := r.service.Create(c.Request.Context(), input)
+	user, err := r.service.Create(c.Request.Context(), input)
 	if err != nil {
 		return err
 	}
 
-	return c.WriteWithStatus(album, http.StatusCreated)
+	//return c.WriteWithStatus(user, http.StatusCreated)
+	return errors.SuccessWithStatus(user, http.StatusCreated)
 }
 
 func (r resource) update(c *routing.Context) error {
-	var input UpdateAlbumRequest
+	var input UpdateUserRequest
 	if err := c.Read(&input); err != nil {
 		r.logger.With(c.Request.Context()).Info(err)
 		return errors.BadRequest("")
 	}
 
-	album, err := r.service.Update(c.Request.Context(), c.Param("id"), input)
+	user, err := r.service.Update(c.Request.Context(), c.Param("id"), input)
 	if err != nil {
 		return err
 	}
 
-	return c.Write(album)
+	//return c.Write(user)
+	return errors.Success(user)
+
 }
 
 func (r resource) delete(c *routing.Context) error {
-	album, err := r.service.Delete(c.Request.Context(), c.Param("id"))
+	user, err := r.service.Delete(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	return c.Write(album)
+	//return c.Write(user)
+	return errors.Success(user)
 }

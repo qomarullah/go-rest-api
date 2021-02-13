@@ -1,9 +1,10 @@
 package errors
 
 import (
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
 	"sort"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 // ErrorResponse is the response that represents an error.
@@ -102,5 +103,21 @@ func InvalidInput(errs validation.Errors) ErrorResponse {
 		Status:  http.StatusBadRequest,
 		Message: "There is some problem with the data you submitted.",
 		Details: details,
+	}
+}
+
+func Success(resp interface{}) ErrorResponse {
+	return ErrorResponse{
+		Status:  http.StatusOK,
+		Message: "Success",
+		Details: resp,
+	}
+}
+
+func SuccessWithStatus(resp interface{}, status int) ErrorResponse {
+	return ErrorResponse{
+		Status:  status,
+		Message: "Success",
+		Details: resp,
 	}
 }

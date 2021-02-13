@@ -2,12 +2,13 @@ package auth
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/dgrijalva/jwt-go"
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/go-ozzo/ozzo-routing/v2/auth"
 	"github.com/qiangxue/go-rest-api/internal/entity"
 	"github.com/qiangxue/go-rest-api/internal/errors"
-	"net/http"
 )
 
 // Handler returns a JWT-based authentication middleware.
@@ -35,15 +36,15 @@ const (
 // WithUser returns a context that contains the user identity from the given JWT.
 func WithUser(ctx context.Context, id, name string) context.Context {
 	return context.WithValue(ctx, userKey, entity.User{ID: id, Name: name})
+
 }
 
 // CurrentUser returns the user identity from the given context.
 // Nil is returned if no user identity is found in the context.
-func CurrentUser(ctx context.Context) Identity {
-	if user, ok := ctx.Value(userKey).(entity.User); ok {
-		return user
-	}
-	return nil
+func CurrentUser(ctx context.Context) entity.User {
+	user, _ := ctx.Value(userKey).(entity.User)
+	return user
+
 }
 
 // MockAuthHandler creates a mock authentication middleware for testing purpose.

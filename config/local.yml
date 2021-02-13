@@ -1,3 +1,6 @@
-#dsn: "apps:aplikasi@tcp(localhost:3306)/go_restful?parseTime=True&charset=utf8&autocommit=true"
-dsn: "apps:aplikasi@tcp(host.docker.internal:3306)/go_restful?parseTime=True&charset=utf8&autocommit=true"
+server_port: 8001
+
+dsn: "apps:aplikasi@tcp(localhost:3306)/loena_dashboard?parseTime=True&charset=utf8&autocommit=true"
+#dsn: "apps:aplikasi@tcp(host.docker.internal:3306)/go_restful?parseTime=True&charset=utf8&autocommit=true"
+basic_auth_username: "password"
 jwt_signing_key: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"

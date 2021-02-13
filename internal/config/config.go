@@ -20,6 +20,11 @@ type Config struct {
 	ServerPort int `yaml:"server_port" env:"SERVER_PORT"`
 	// the data source name (DSN) for connecting to the database. required.
 	DSN string `yaml:"dsn" env:"DSN,secret"`
+
+	// basic auth
+	BasicAuthUsername int    `yaml:"basic_username" env:"BASIC_USERNAME"`
+	BasicAuthPassword string `yaml:"basic_password" env:"BASIC_PASSWORD"`
+
 	// JWT signing key. required.
 	JWTSigningKey string `yaml:"jwt_signing_key" env:"JWT_SIGNING_KEY,secret"`
 	// JWT expiration in hours. Defaults to 72 hours (3 days)
