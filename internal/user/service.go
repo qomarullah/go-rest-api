@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
-	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/qiangxue/go-rest-api/internal/entity"
-	"github.com/qiangxue/go-rest-api/pkg/log"
+	"github.com/qomarullah/go-rest-api/internal/entity"
+	"github.com/qomarullah/go-rest-api/pkg/helpers"
+	"github.com/qomarullah/go-rest-api/pkg/log"
 )
 
 // Service encapsulates usecase logic for users.
@@ -14,7 +14,7 @@ type Service interface {
 	Get(ctx context.Context, id string) (User, error)
 	Query(ctx context.Context, offset, limit int) ([]User, error)
 	Count(ctx context.Context) (int, error)
-	Create(ctx context.Context, input CreateUserRequest) (User, error)
+	Create(ctx context.Context, input CreateUserRequest) error
 	Update(ctx context.Context, id string, input UpdateUserRequest) (User, error)
 	Delete(ctx context.Context, id string) (User, error)
 }
@@ -26,7 +26,12 @@ type User struct {
 
 // CreateUserRequest represents an user creation request.
 type CreateUserRequest struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	RolesID  int    `json:"roles_id"`
+	Photo    string `json:"photo"`
+	Status   string `json:"status"`
 }
 
 // Validate validates the CreateUserRequest fields.
@@ -38,7 +43,12 @@ func (m CreateUserRequest) Validate() error {
 
 // UpdateUserRequest represents an user update request.
 type UpdateUserRequest struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	RolesID  int    `json:"roles_id"`
+	Photo    string `json:"photo"`
+	Status   string `json:"status"`
 }
 
 // Validate validates the CreateUserRequest fields.
@@ -68,22 +78,21 @@ func (s service) Get(ctx context.Context, id string) (User, error) {
 }
 
 // Create creates a new user.
-func (s service) Create(ctx context.Context, req CreateUserRequest) (User, error) {
+func (s service) Create(ctx context.Context, req CreateUserRequest) error {
 	if err := req.Validate(); err != nil {
-		return User{}, err
+		return err
 	}
-	id := entity.GenerateID()
-	now := time.Now()
+	//id := entity.GenerateID()
+	//now := time.Now()
 	err := s.repo.Create(ctx, entity.User{
-		ID:        id,
-		Name:      req.Name,
-		CreatedAt: now,
-		UpdatedAt: now,
+		Name:     req.Name,
+		Password: helpers.MD5Hash(req.Password),
+		Email:    req.Email,
+		RolesId:  req.RolesID,
+		Photo:    &req.Photo,
 	})
-	if err != nil {
-		return User{}, err
-	}
-	return s.Get(ctx, id)
+
+	return err
 }
 
 // Update updates the user with the specified ID.
@@ -96,8 +105,11 @@ func (s service) Update(ctx context.Context, id string, req UpdateUserRequest) (
 	if err != nil {
 		return user, err
 	}
-	//user.Name = req.Name
-	//user.UpdatedAt = time.Now()
+	user.Name = req.Name
+	user.Password = req.Password
+	user.Email = req.Email
+	user.RolesId = req.RolesID
+	user.Photo = &req.Photo
 
 	if err := s.repo.Update(ctx, user.User); err != nil {
 		return user, err

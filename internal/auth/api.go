@@ -2,8 +2,8 @@ package auth
 
 import (
 	routing "github.com/go-ozzo/ozzo-routing/v2"
-	"github.com/qiangxue/go-rest-api/internal/errors"
-	"github.com/qiangxue/go-rest-api/pkg/log"
+	"github.com/qomarullah/go-rest-api/internal/errors"
+	"github.com/qomarullah/go-rest-api/pkg/log"
 )
 
 // RegisterHandlers registers handlers for different HTTP requests.
@@ -35,6 +35,8 @@ func (r resource) login(c *routing.Context) error {
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}
-	return c.Write(user)
+	//return c.Write(user)
+
+	return errors.Success(user)
 
 }

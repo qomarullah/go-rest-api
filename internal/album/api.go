@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	routing "github.com/go-ozzo/ozzo-routing/v2"
-	"github.com/qiangxue/go-rest-api/internal/errors"
-	"github.com/qiangxue/go-rest-api/pkg/log"
-	"github.com/qiangxue/go-rest-api/pkg/pagination"
+	"github.com/qomarullah/go-rest-api/internal/errors"
+	"github.com/qomarullah/go-rest-api/pkg/log"
+	"github.com/qomarullah/go-rest-api/pkg/pagination"
 )
 
 // RegisterHandlers sets up the routing of the HTTP handlers.

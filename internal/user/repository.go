@@ -3,9 +3,11 @@ package user
 import (
 	"context"
 
-	"github.com/qiangxue/go-rest-api/internal/entity"
-	"github.com/qiangxue/go-rest-api/pkg/dbcontext"
-	"github.com/qiangxue/go-rest-api/pkg/log"
+	dbx "github.com/go-ozzo/ozzo-dbx"
+	"github.com/qomarullah/go-rest-api/internal/entity"
+	"github.com/qomarullah/go-rest-api/pkg/dbcontext"
+	"github.com/qomarullah/go-rest-api/pkg/helpers"
+	"github.com/qomarullah/go-rest-api/pkg/log"
 )
 
 // Repository encapsulates the logic to access users from the data source.
@@ -45,7 +47,16 @@ func (r repository) Get(ctx context.Context, id string) (entity.User, error) {
 // Create saves a new user record in the database.
 // It returns the ID of the newly inserted user record.
 func (r repository) Create(ctx context.Context, user entity.User) error {
-	return r.db.With(ctx).Model(&user).Insert()
+	//err := r.db.With(ctx).Model(&user).Insert()
+	_, err := r.db.With(ctx).Insert("users", dbx.Params{
+		"name":     user.Name,
+		"email":    user.Email,
+		"password": helpers.MD5Hash(user.Password),
+		"roles_id": user.RolesId,
+		"photo":    user.Photo,
+	}).Execute()
+
+	return err
 }
 
 // Update saves the changes to an user in the database.
@@ -65,7 +76,7 @@ func (r repository) Delete(ctx context.Context, id string) error {
 // Count returns the number of the user records in the database.
 func (r repository) Count(ctx context.Context) (int, error) {
 	var count int
-	err := r.db.With(ctx).Select("COUNT(*)").From("cms_users").Row(&count)
+	err := r.db.With(ctx).Select("COUNT(*)").From("users").Row(&count)
 	return count, err
 }
 

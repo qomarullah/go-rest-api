@@ -6,19 +6,21 @@ import (
 
 // User represents a user.
 type User struct {
-	ID              string    `json:"id"`
-	Name            string    `json:"name"`
-	Email           string    `json:"email"`
-	IdCmsPrivileges string    `json:"idCmsPrivileges"`
-	Photo           *string   `json:"photo"`
-	Status          *string   `json:"status"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	Token           string    `json:"token"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	RolesId   int       `json:"roles_id"`
+	Photo     *string   `json:"photo"`
+	Status    *string   `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Password  string    `db:"-" json:"password,omitempty"`
+	Token     string    `db:"-" json:"token,omitempty"`
 }
 
+// get table real
 func (c User) TableName() string {
-	return "cms_users"
+	return "users"
 }
 
 // GetID returns the user ID.

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/qiangxue/go-rest-api/internal/entity"
-	"github.com/qiangxue/go-rest-api/internal/errors"
-	"github.com/qiangxue/go-rest-api/internal/test"
-	"github.com/qiangxue/go-rest-api/pkg/log"
+	"github.com/qomarullah/go-rest-api/internal/entity"
+	"github.com/qomarullah/go-rest-api/internal/errors"
+	"github.com/qomarullah/go-rest-api/internal/test"
+	"github.com/qomarullah/go-rest-api/pkg/log"
 )
 
 type mockService struct {

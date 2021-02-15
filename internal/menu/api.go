@@ -1,4 +1,4 @@
-package user
+package menu
 
 import (
 	"net/http"
@@ -13,14 +13,15 @@ import (
 func RegisterHandlers(r *routing.RouteGroup, service Service, authHandler routing.Handler, logger log.Logger) {
 	res := resource{service, logger}
 
-	r.Get("/users/<id>", res.get)
-	r.Get("/users", res.query)
+	r.Get("/menus/<id>", res.get)
+	r.Get("/menus/roles/<id>", res.getByRoles)
+	r.Get("/menus", res.query)
 
 	r.Use(authHandler)
 	// the following endpoints require a valid JWT
-	r.Post("/users", res.create)
-	r.Put("/users/<id>", res.update)
-	r.Delete("/users/<id>", res.delete)
+	r.Post("/menus", res.create)
+	r.Put("/menus/<id>", res.update)
+	r.Delete("/menus/<id>", res.delete)
 }
 
 type resource struct {
@@ -29,13 +30,19 @@ type resource struct {
 }
 
 func (r resource) get(c *routing.Context) error {
-	user, err := r.service.Get(c.Request.Context(), c.Param("id"))
+	menu, err := r.service.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	//return c.Write(user)
-	return errors.Success(user)
+	return errors.Success(menu)
+}
+func (r resource) getByRoles(c *routing.Context) error {
+	menu, err := r.service.GetByRoles(c.Request.Context(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+	return errors.Success(menu)
 }
 
 func (r resource) query(c *routing.Context) error {
@@ -45,17 +52,16 @@ func (r resource) query(c *routing.Context) error {
 		return err
 	}
 	pages := pagination.NewFromRequest(c.Request, count)
-	users, err := r.service.Query(ctx, pages.Offset(), pages.Limit())
+	menus, err := r.service.Query(ctx, pages.Offset(), pages.Limit())
 	if err != nil {
 		return err
 	}
-	pages.Items = users
-	//return c.Write(pages)
+	pages.Items = menus
 	return errors.Success(pages)
 }
 
 func (r resource) create(c *routing.Context) error {
-	var input CreateUserRequest
+	var input CreateRequest
 	if err := c.Read(&input); err != nil {
 		r.logger.With(c.Request.Context()).Info(err)
 		return errors.BadRequest("")
@@ -69,28 +75,26 @@ func (r resource) create(c *routing.Context) error {
 }
 
 func (r resource) update(c *routing.Context) error {
-	var input UpdateUserRequest
+	var input UpdateRequest
 	if err := c.Read(&input); err != nil {
 		r.logger.With(c.Request.Context()).Info(err)
 		return errors.BadRequest("")
 	}
 
-	user, err := r.service.Update(c.Request.Context(), c.Param("id"), input)
+	menu, err := r.service.Update(c.Request.Context(), c.Param("id"), input)
 	if err != nil {
 		return err
 	}
 
-	//return c.Write(user)
-	return errors.Success(user)
+	return errors.Success(menu)
 
 }
 
 func (r resource) delete(c *routing.Context) error {
-	user, err := r.service.Delete(c.Request.Context(), c.Param("id"))
+	menu, err := r.service.Delete(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	//return c.Write(user)
-	return errors.Success(user)
+	return errors.Success(menu)
 }

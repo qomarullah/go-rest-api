@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	routing "github.com/go-ozzo/ozzo-routing/v2"
-	"github.com/qiangxue/go-rest-api/pkg/log"
+	"github.com/qomarullah/go-rest-api/pkg/log"
 	"github.com/stretchr/testify/assert"
 )
 

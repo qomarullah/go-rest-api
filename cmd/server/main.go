@@ -15,15 +15,20 @@ import (
 	"github.com/go-ozzo/ozzo-routing/v2/cors"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	"github.com/qiangxue/go-rest-api/internal/album"
-	"github.com/qiangxue/go-rest-api/internal/auth"
-	"github.com/qiangxue/go-rest-api/internal/config"
-	"github.com/qiangxue/go-rest-api/internal/errors"
-	"github.com/qiangxue/go-rest-api/internal/healthcheck"
-	"github.com/qiangxue/go-rest-api/internal/user"
-	"github.com/qiangxue/go-rest-api/pkg/accesslog"
-	"github.com/qiangxue/go-rest-api/pkg/dbcontext"
-	"github.com/qiangxue/go-rest-api/pkg/log"
+	"github.com/qomarullah/go-rest-api/internal/adhoc"
+	"github.com/qomarullah/go-rest-api/internal/album"
+	"github.com/qomarullah/go-rest-api/internal/auth"
+	"github.com/qomarullah/go-rest-api/internal/config"
+	"github.com/qomarullah/go-rest-api/internal/customer"
+	"github.com/qomarullah/go-rest-api/internal/errors"
+	"github.com/qomarullah/go-rest-api/internal/healthcheck"
+	"github.com/qomarullah/go-rest-api/internal/history"
+	"github.com/qomarullah/go-rest-api/internal/menu"
+	"github.com/qomarullah/go-rest-api/internal/reminder"
+	"github.com/qomarullah/go-rest-api/internal/user"
+	"github.com/qomarullah/go-rest-api/pkg/accesslog"
+	"github.com/qomarullah/go-rest-api/pkg/dbcontext"
+	"github.com/qomarullah/go-rest-api/pkg/log"
 )
 
 // Version indicates the current version of the application.
@@ -56,11 +61,38 @@ func main() {
 		}
 	}()
 
+	// connect to the database customer
+	dbCustomer, err := dbx.MustOpen("mysql", cfg.DSNCustomer)
+	if err != nil {
+		logger.Error(err)
+		os.Exit(-1)
+	}
+	dbCustomer.QueryLogFunc = logDBQuery(logger)
+	dbCustomer.ExecLogFunc = logDBExec(logger)
+	defer func() {
+		if err := dbCustomer.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+	// connect to the database queue
+	dbQueue, err := dbx.MustOpen("mysql", cfg.DSNQueue)
+	if err != nil {
+		logger.Error(err)
+		os.Exit(-1)
+	}
+	dbQueue.QueryLogFunc = logDBQuery(logger)
+	dbQueue.ExecLogFunc = logDBExec(logger)
+	defer func() {
+		if err := dbQueue.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+
 	// build HTTP server
 	address := fmt.Sprintf(":%v", cfg.ServerPort)
 	hs := &http.Server{
 		Addr:    address,
-		Handler: buildHandler(logger, dbcontext.New(db), cfg),
+		Handler: buildHandler(logger, dbcontext.New(db), dbcontext.New(dbCustomer), dbcontext.New(dbQueue), cfg),
 	}
 
 	// start the HTTP server with graceful shutdown
@@ -73,7 +105,7 @@ func main() {
 }
 
 // buildHandler sets up the HTTP routing and builds an HTTP handler.
-func buildHandler(logger log.Logger, db *dbcontext.DB, cfg *config.Config) http.Handler {
+func buildHandler(logger log.Logger, db, dbCustomer, dbQueue *dbcontext.DB, cfg *config.Config) http.Handler {
 	router := routing.New()
 
 	router.Use(
@@ -85,7 +117,7 @@ func buildHandler(logger log.Logger, db *dbcontext.DB, cfg *config.Config) http.
 
 	healthcheck.RegisterHandlers(router, Version)
 
-	rg := router.Group("/v1")
+	rg := router.Group("/loena/v1")
 
 	authHandler := auth.Handler(cfg.JWTSigningKey)
 	album.RegisterHandlers(rg.Group(""),
@@ -100,7 +132,26 @@ func buildHandler(logger log.Logger, db *dbcontext.DB, cfg *config.Config) http.
 		user.NewService(user.NewRepository(db, logger), logger),
 		authHandler, logger,
 	)
-
+	menu.RegisterHandlers(rg.Group(""),
+		menu.NewService(menu.NewRepository(db, logger), logger),
+		authHandler, logger,
+	)
+	customer.RegisterHandlers(rg.Group(""),
+		customer.NewService(customer.NewRepository(dbCustomer, logger), logger),
+		authHandler, logger,
+	)
+	history.RegisterHandlers(rg.Group(""),
+		history.NewService(history.NewRepository(dbCustomer, logger), logger),
+		authHandler, logger,
+	)
+	reminder.RegisterHandlers(rg.Group(""),
+		reminder.NewService(reminder.NewRepository(dbQueue, logger), logger),
+		authHandler, logger,
+	)
+	adhoc.RegisterHandlers(rg.Group(""),
+		adhoc.NewService(adhoc.NewRepository(db, logger), logger),
+		authHandler, logger,
+	)
 	return router
 }
 
